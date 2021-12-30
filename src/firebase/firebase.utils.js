@@ -1,6 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
+import { collection, doc, setDoc, getDoc } from "firebase/firestore";
 import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 
 //import { createContext, useContext, useEffect, useState } from "react";
@@ -13,12 +14,12 @@ import 'firebase/compat/firestore'; */
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyCcZGXgRBCHWgT4Lm02_000AzB0IYiUHo0",
-    authDomain: "crwn-db-30c20.firebaseapp.com",
-    projectId: "crwn-db-30c20",
-    storageBucket: "crwn-db-30c20.appspot.com",
-    messagingSenderId: "152901467556",
-    appId: "1:152901467556:web:dd8c66f4ff71faf780d531"
+   apiKey: "AIzaSyCcZGXgRBCHWgT4Lm02_000AzB0IYiUHo0",
+   authDomain: "crwn-db-30c20.firebaseapp.com",
+   projectId: "crwn-db-30c20",
+   storageBucket: "crwn-db-30c20.appspot.com",
+   messagingSenderId: "152901467556",
+   appId: "1:152901467556:web:dd8c66f4ff71faf780d531"
 };
 
 // Initialize Firebase
@@ -46,15 +47,15 @@ export const singInWithGoogle = () => signInWithPopup(auth, provider)
                                         }); */
 
 export const singInWithGoogle = () => {
-    const provider = new GoogleAuthProvider();
-    provider.setCustomParameters({ prompt: 'select_account' });
-    
-    signInWithPopup(auth, provider)
-    .then((re) => {
-        console.log(re);
-    }).catch((err) => {
-        console.log(err);
-    })
+   const provider = new GoogleAuthProvider();
+   provider.setCustomParameters({ prompt: 'select_account' });
+
+   signInWithPopup(auth, provider)
+      .then((re) => {
+         //console.log(re);
+      }).catch((err) => {
+         console.log(err);
+      })
 }
 
 /* firebase.initializeApp(firebaseConfig);
@@ -78,3 +79,37 @@ export const useAuth = function AuthContextProvider({ children }) {
     return <AuthContext.Provider value={value}>{ children }</AuthContext.Provider>
 } */
 
+export const createUserProfileDocument = async (userAuth, additionalData) => {
+   if (!userAuth) {
+      return;
+   }
+   const userRef = doc(firestore, `users/${userAuth.uid}`);
+   const userSnap = await getDoc(userRef);
+
+   // If the database record doesn't exist then insert it
+   if (!userSnap.exists()) {
+      //console.log("No such document!", userSnap);
+      const { displayName, email } = userAuth;
+      const createdAt = new Date();
+
+      try {
+         await setDoc(userRef, {
+            displayName,
+            email,
+            createdAt,
+            ...additionalData
+         });
+      } catch (error) {
+         console.log('Error creating user', error.message);
+      }
+
+      
+   } else {
+      //console.log("Document data:", userSnap.data());
+      // doc.data() will be undefined in this case
+   }
+   
+   return userRef;
+   //console.log('firebase.utils.js', userRef);
+   //return userRef;
+}
